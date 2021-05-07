@@ -4,42 +4,74 @@
 
 library(shiny)
 library(shinyWidgets)
+source('www/english.R')
 
 # Define UI for application that draws a histogram
-ui <- navbarPage(title = "Remote Quick Aphasia Battery", id = "mainpage",
-         tabPanel("Home",
+ui <- navbarPage(title = pagetitle, id = "mainpage",
+         tabPanel(tabtitle0,
+                  column(width = 4,
+                         h2(welcome),
+                  intro1,
+                  intro2,
                   br(), br(),
-                  "Information about the app",
-                  br(), br(),
-                  "Also information to enter for creating a downloadable record",
-                  br(), br(),
-                  selectInput("form", "Choose a form", selected = "Form 1", 
-                              choices = c("Form 1" = "form1",
-                                          "Form 2" = "form2",
-                                          "Form 3" = "form3",
-                                          "Form 1A" = "form1a",
-                                          "Form 2A" = "form2a",
-                                          "Form 3a" = "form3a")
+                  textInput("name", nameinput),
+                  textAreaInput("other", otherinput),
+                  airDatepickerInput(
+                      inputId = "date",
+                      label = dateinput,
+                      multiple = FALSE,
+                      value = Sys.time(),
+                      timepicker = TRUE,
+                      timepickerOpts = timepickerOptions(
+                          dateTimeSeparator = " at ",
+                          minutesStep = 10,
+                          hoursStep = 1
+                      )
                   ),
-                  br(), br(),
-                  actionButton("start", "Start Assessment")
+                  selectInput("form", "Choose a form", selected = "1", 
+                              choices = c("1" = "form1",
+                                          "2" = "form2",
+                                          "3" = "form3",
+                                          "1A" = "form1a",
+                                          "2A" = "form2a",
+                                          "3A" = "form3a")
+                  ),
+                  selectInput("language", "Choose a Language", choices = c("English" = "english")),
+                  "(Only english current set up)"
+                  ),
+                  column(width = 1),
+                  column(width = 6,
+                         h3("Instructions:"), br(),
+                         instruction1,
+                         br(),
+                        instruction2,
+                         br(),
+                        instruction3, 
+                        br(),
+                        instruction4,
+                         br(), br(), br(),
+                         div(align = "center",
+                         actionButton("start", inputstart)
+                         )
+                         
+                  )
 
          ),
-         tabPanel(title = "Assessment", 
+         tabPanel(title = tabtitle1, 
                   column(width = 12, align = "center",
                   uiOutput("slide"),
                   br(),
                   br(),
                   br(),
                       div(align = "center", style = "width: 40%;",
-                          actionButton("back", "Back"), actionButton("nxt", "Next"), br(), br(),
+                          actionButton("back", backbutton), actionButton("nxt", nextbutton), br(), br(),
                         progressBar(id = "progress_bar", value = 0, display_pct = F, size = "xs")
                       )
                   )
          ),
-         tabPanel(title = "Results", 
+         tabPanel(title = tabtitle2, 
                   
-                  "This page has the results"
+                  resultstext
 
                   
          )
@@ -52,6 +84,7 @@ server <- function(input, output, session) {
     values$i = 0
     
     observe({
+        # if regular form, its going to be = 19, if extended, then 36. can use these two numbers to detech which form. 
         values$n <- length(list.files(here('www', input$form)))-1
         print(values$n)
         print(values$i)
@@ -62,10 +95,8 @@ server <- function(input, output, session) {
         if(values$i > values$n){
             values$i = values$n
             updateNavbarPage(session, "mainpage",
-                             selected = "Results")
+                             selected = tabtitle2)
             } else {
-        updateTabsetPanel(session, "tabsetp",
-                          selected = paste0("Task", values$i))
         updateProgressBar(session = session, id = "progress_bar", value = (values$i/(values$n+1))*100, total = 100)
             }
     })
@@ -75,22 +106,21 @@ server <- function(input, output, session) {
         if(values$i < 0){
             values$i = 1
             updateNavbarPage(session, "mainpage",
-                             selected = "Home")
+                             selected = tabtitle0)
         } else {
-        updateTabsetPanel(session, "tabsetp",
-                          selected = paste0("Task", values$i))
         }
     })
     
     observeEvent(input$start, {
         values$i = 0
         updateNavbarPage(session, "mainpage",
-                          selected = "Assessment")
+                          selected = tabtitle1)
         updateProgressBar(session = session, id = "progress_bar", value = 0, total = 100)
     })
     
     output$slide <- renderUI({
-        tmp = paste0(input$form, "/page-", values$i, ".jpg")
+        tmp = paste0(input$form, "/", input$language, "-page-", values$i, ".jpg")
+        print(tmp)
         tags$img(src = tmp)
     })
 
