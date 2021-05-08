@@ -4,8 +4,7 @@
 
 library(shiny)
 library(shinyWidgets)
-source('www/english.R')
-source('www/english_qs.R')
+source('www/english_structure.R')
 
 
 # Define UI for application that draws a histogram
@@ -33,13 +32,10 @@ ui <- navbarPage(title = pagetitle, id = "mainpage",
                   selectInput("form", "Choose a form", selected = "1", 
                               choices = c("1" = "form1",
                                           "2" = "form2",
-                                          "3" = "form3",
-                                          "1A" = "form1a",
-                                          "2A" = "form2a",
-                                          "3A" = "form3a")
+                                          "3" = "form3"
+                                          )
                   ),
                   selectInput("language", "Choose a Language", choices = c("English" = "english")),
-                  "(Only english current set up)"
                   ),
                   column(width = 1),
                   column(width = 6,
@@ -56,14 +52,13 @@ ui <- navbarPage(title = pagetitle, id = "mainpage",
                          actionButton("start", inputstart)
                          ),
                         br(), br(),
-                        citation, a("Link to PDF", href = "https://aphasialab.org/papers/wilson18plosone.pdf", target = "_blank")
+                        citation, a("Link to PDF", href = "https://google.com", target = "_blank")
                          
                   )
 
          ),
          tabPanel(title = tabtitle1,
-                  column(width = 2),
-                  column(width = 8, align = "center",
+                  column(width = 12, align = "center",
                       fluidRow(uiOutput("slide")),
                       fluidRow(
                               div(align = "center", style = "width: 50%;",
@@ -74,9 +69,6 @@ ui <- navbarPage(title = pagetitle, id = "mainpage",
                               )
                       )
                   ),
-                  column(width = 2, align = "left",
-                         uiOutput("discourse")
-                         )
          ),
          tabPanel(title = tabtitle2, 
                   
@@ -101,7 +93,7 @@ server <- function(input, output, session) {
     
     observeEvent(input$nxt, {
         values$i = values$i+1
-        if(values$i > values$n+4){
+        if(values$i > values$n){
             values$i = values$n
             updateNavbarPage(session, "mainpage",
                              selected = tabtitle2)
@@ -129,32 +121,12 @@ server <- function(input, output, session) {
     
     output$slide <- renderUI({
         
-        if(values$i==0){
-            section1
-        } else if (values$i == 1){
-            section2
-        } else if (values$i == 2){
-            div(align = "center", style = "padding: 0; margin:0;",
-                       tags$img(src = paste0(input$form, "/", input$language, "-page-", "2", ".jpg")),
-                       textAreaInput("pic1_sample", "Transcribe:", width = "50%", height = "35px")
-            )
-        } else if (values$i == 3){
-            div(align = "center", style = "padding: 0; margin:0;",
-                tags$img(src = paste0(input$form, "/", input$language, "-page-", "3", ".jpg")),
-                textAreaInput("pic2_sample", "Transcribe:", width = "50%", height = "35px")
-            )
-        } else{
-        tmp = paste0(input$form, "/", input$language, "-page-", values$i-4, ".jpg")
+        tmp = paste0(input$form, "/", input$language, "-page-", values$i, ".jpg")
         print(tmp)
         tags$img(src = tmp)
-        }
+ 
     })
     
-    output$discourse <- renderUI({
-        if(values$i > 0 & values$i < 4){
-            actionButton("discourse", "Rate Discourse")
-        }
-    })
 
     
 }
