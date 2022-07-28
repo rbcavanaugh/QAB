@@ -1,9 +1,10 @@
 # next:
 
 # construct a dataframe that has the possible options for data entry to programmatically display an input
-
+library(here)
 library(shiny)
 library(shinyWidgets)
+library(shinysense)
 source('www/english.R')
 source('www/english_qs.R')
 
@@ -33,10 +34,11 @@ ui <- navbarPage(title = pagetitle, id = "mainpage",
                   selectInput("form", "Choose a form", selected = "1", 
                               choices = c("1" = "form1",
                                           "2" = "form2",
-                                          "3" = "form3",
-                                          "1A" = "form1a",
-                                          "2A" = "form2a",
-                                          "3A" = "form3a")
+                                          "3" = "form3")
+                              # ,
+                                          # "1A" = "form1a",
+                                          # "2A" = "form2a",
+                                          # "3A" = "form3a")
                   ),
                   selectInput("language", "Choose a Language", choices = c("English" = "english")),
                   "(Only english current set up)"
@@ -56,8 +58,8 @@ ui <- navbarPage(title = pagetitle, id = "mainpage",
                          actionButton("start", inputstart)
                          ),
                         br(), br(),
-                        citation, a("Link to PDF", href = "https://aphasialab.org/papers/wilson18plosone.pdf", target = "_blank")
-                         
+                        citation, a("Link to PDF", href = "https://aphasialab.org/papers/wilson18plosone.pdf", target = "_blank"),
+
                   )
 
          ),
@@ -68,8 +70,7 @@ ui <- navbarPage(title = pagetitle, id = "mainpage",
                       fluidRow(
                               div(align = "center", style = "width: 50%;",
                                   actionButton("back", backbutton),
-                                  actionButton("nxt", nextbutton), br(), br(),
-                                  progressBar(id = "progress_bar", value = 0, display_pct = F, size = "xs"), br(),
+                                  actionButton("nxt", nextbutton)
                                   
                               )
                       )
@@ -88,7 +89,6 @@ ui <- navbarPage(title = pagetitle, id = "mainpage",
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
-
     values = reactiveValues()
     values$i = 0
     
@@ -105,9 +105,7 @@ server <- function(input, output, session) {
             values$i = values$n
             updateNavbarPage(session, "mainpage",
                              selected = tabtitle2)
-            } else {
-        updateProgressBar(session = session, id = "progress_bar", value = (values$i/(values$n+1))*100, total = 100)
-            }
+            } 
     })
     
     observeEvent(input$back, {
@@ -124,7 +122,6 @@ server <- function(input, output, session) {
         values$i = 0
         updateNavbarPage(session, "mainpage",
                           selected = tabtitle1)
-        updateProgressBar(session = session, id = "progress_bar", value = 0, total = 100)
     })
     
     output$slide <- renderUI({
@@ -134,16 +131,31 @@ server <- function(input, output, session) {
         } else if (values$i == 1){
             section2
         } else if (values$i == 2){
+            share_div
+        } else if (values$i == 3){
             div(align = "center", style = "padding: 0; margin:0;",
                        tags$img(src = paste0(input$form, "/", input$language, "-page-", "2", ".jpg")),
                        textAreaInput("pic1_sample", "Transcribe:", width = "50%", height = "35px")
             )
-        } else if (values$i == 3){
+        } else if (values$i == 4){
+          stop_share_div
+        } else if (values$i == 5){
+          section4
+          
+          
+        } else if (values$i == 4){
             div(align = "center", style = "padding: 0; margin:0;",
                 tags$img(src = paste0(input$form, "/", input$language, "-page-", "3", ".jpg")),
                 textAreaInput("pic2_sample", "Transcribe:", width = "50%", height = "35px")
             )
-        } else{
+        } else if (values$i == 5){
+          div(align = "center", style = "padding: 0; margin:0;",
+              tags$img(src = paste0(input$form, "/", input$language, "-page-", "2", ".jpg")),
+              textAreaInput("pic1_sample", "Transcribe:", width = "50%", height = "35px")
+          )
+          
+          
+          } else{
         tmp = paste0(input$form, "/", input$language, "-page-", values$i-4, ".jpg")
         print(tmp)
         tags$img(src = tmp)
@@ -154,6 +166,15 @@ server <- function(input, output, session) {
         if(values$i > 0 & values$i < 4){
             actionButton("discourse", "Rate Discourse")
         }
+    })
+    
+    observeEvent(input$discourse, {
+      showModal(modalDialog(
+        title = "Rate Discourse",
+        score_discourse_div,
+        size= "l",
+        easyClose = T
+      ))
     })
 
     
